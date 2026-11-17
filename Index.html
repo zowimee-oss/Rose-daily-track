@@ -1,0 +1,776 @@
+<!doctype html>
+<html lang="am">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rose Daily Track</title>
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Rose Daily Track">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>html,body{margin:0}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Ethiopic:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: pink wash page, rose-crimson accent. Summary on top, then entry form beside the day's order list (stacked on phones). */
+:root {
+  --bg: #fff0f3;
+  --bg-a: #ffffff;
+  --bg-b: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #fffafb;
+  --fg: #2d2023;
+  --muted: #7d6870;
+  --line: #f6dde4;
+  --accent: #c24e6d;
+  --accent-fg: #ffffff;
+  --accent-soft: #fde8ee;
+  --btn: #f6b2c3;
+  --btn-fg: #4a1727;
+  --tile: #f7bccb;
+  --tile-fg: #4a1727;
+  --ink: #2b2022;
+  --ink-fg: #ffffff;
+  --ink-muted: #d9c4ca;
+  --pop: #f7b6c6;
+  --ok: #0b7a5a;
+  --ok-soft: #dcf5ec;
+  --ok-line: #9bddc6;
+  --warn: #8a5200;
+  --warn-soft: #fdf0d0;
+  --warn-line: #f0cf86;
+  --bad: #b3261e;
+  --bad-soft: #fbe0dd;
+  --blue: #0b5f8a;
+  --blue-soft: #e0f2fb;
+  --purple: #5b2a9a;
+  --purple-soft: #efe6fb;
+  --font-body: "Inter", "Noto Sans Ethiopic", system-ui, sans-serif;
+}
+/* Single light look by choice: the page stays white and pink even when the phone is in dark mode. */
+:root { color-scheme: light; }
+
+* { box-sizing: border-box; }
+body {
+  background:
+    radial-gradient(900px 520px at 0% 0%, var(--bg-a), transparent 70%),
+    radial-gradient(800px 520px at 100% 100%, var(--bg-a), transparent 70%),
+    var(--bg-b);
+  min-height: 100%;
+  color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+  padding-block: 16px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 18px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+.num { font-variant-numeric: tabular-nums; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.en { font-weight: 500; color: var(--muted); }
+
+/* Brand */
+.brand { display: flex; align-items: center; gap: 14px; }
+.logo { width: 56px; height: 56px; border-radius: 16px; background: var(--btn); color: var(--btn-fg); display: grid; place-items: center; flex: none; }
+.logo svg { width: 32px; height: 32px; }
+.brand h1 { font-size: 24px; font-weight: 800; line-height: 1.2; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.tag { font-size: 13px; font-weight: 700; background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 3px 12px; }
+.brand .sub { color: var(--muted); font-size: 14px; }
+
+/* Filter pill */
+.filters { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; background: var(--accent-soft); border: 1px solid var(--line); border-radius: 18px; padding: 6px; width: fit-content; max-width: 100%; }
+.filters .today { background: var(--surface); color: var(--accent); border: 0; border-radius: 12px; padding: 10px 16px; font-weight: 700; min-height: 44px; }
+.filters .today[aria-pressed="true"] { box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+.filters input, .filters select { background: transparent; border: 0; padding: 8px 10px; min-height: 44px; font-weight: 600; width: auto; border-radius: 12px; }
+.ethline { color: var(--muted); font-size: 13px; margin-top: -6px; }
+
+/* Cards */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 26px; padding: 22px 18px; min-width: 0; }
+.card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.ico { width: 44px; height: 44px; border-radius: 14px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; flex: none; }
+.ico svg { width: 22px; height: 22px; }
+.card-head h2 { font-size: 20px; font-weight: 800; line-height: 1.25; }
+.card-head .en { font-size: 13px; display: block; }
+
+/* Summary */
+.sum-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin-bottom: 12px; }
+.sum-title h2 { font-size: 22px; font-weight: 800; }
+.sum-title span { color: var(--accent); font-weight: 700; font-size: 15px; }
+.sumbtns { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 10px 18px; min-height: 44px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
+.btn svg { width: 18px; height: 18px; color: var(--accent); }
+.btn:hover { background: var(--surface-2); }
+.btn.primary { background: var(--btn); color: var(--btn-fg); border-color: var(--btn); }
+.btn.primary svg { color: var(--btn-fg); }
+.btn.small { min-height: 36px; padding: 6px 14px; font-size: 13px; }
+.btn.danger { color: var(--bad); }
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (min-width: 760px) { .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 16px; min-width: 0; }
+.tile .k { color: var(--muted); font-size: 14px; }
+.tile .v { font-size: clamp(22px, 6vw, 30px); font-weight: 800; line-height: 1.2; margin: 6px 0 4px; overflow-wrap: anywhere; }
+.tile .s { color: var(--muted); font-size: 13px; }
+.tile.main { background: var(--tile); border-color: var(--tile); color: var(--tile-fg); }
+.tile.main .k, .tile.main .s { color: var(--tile-fg); opacity: .8; }
+.tile .s.cx { color: var(--accent); font-weight: 600; }
+.breakdown { margin-top: 14px; border: 1px solid var(--line); border-radius: 22px; padding: 16px; display: grid; gap: 10px; }
+.breakdown h3 { font-size: 16px; font-weight: 800; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.bchip { border-radius: 999px; padding: 6px 14px; font-size: 14px; font-weight: 700; border: 1px solid transparent; }
+.bchip.tele { background: var(--blue-soft); color: var(--blue); border-color: var(--blue); }
+.bchip.cbe { background: var(--purple-soft); color: var(--purple); border-color: var(--purple); }
+.bchip.cash { background: var(--ok-soft); color: var(--ok); border-color: var(--ok-line); }
+.bchip.unpaid { background: var(--warn-soft); color: var(--warn); border-color: var(--warn-line); }
+.bchip.src { background: var(--accent-soft); color: var(--accent); border-color: var(--line); }
+.fallback { margin-top: 12px; display: grid; gap: 6px; }
+.fallback textarea { min-height: 140px; font-size: 13px; }
+
+/* Grid */
+.grid { display: grid; gap: 18px; align-items: start; }
+@media (min-width: 900px) { .grid { grid-template-columns: 420px minmax(0, 1fr); } }
+
+/* Form */
+form { display: grid; gap: 16px; }
+.field { display: grid; gap: 6px; min-width: 0; }
+.field > label, .lbl { font-weight: 700; font-size: 14px; }
+.req { color: var(--accent); }
+input, select, textarea {
+  font: inherit; font-size: 16px; color: var(--fg); background: var(--surface-2);
+  border: 1.5px solid var(--line); border-radius: 18px; padding: 12px 16px; width: 100%; min-width: 0;
+}
+input::placeholder, textarea::placeholder { color: var(--muted); opacity: .7; }
+input:focus, select:focus, textarea:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
+.chiprow { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 0; background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 8px 14px; font-weight: 600; font-size: 14px; min-height: 38px; }
+.chip.outline { background: var(--surface); border: 1.5px solid var(--line); }
+.chip.on { background: var(--btn); color: var(--btn-fg); }
+.rule { border: 0; border-top: 1px solid var(--line); margin: 0; }
+.itemhead { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.linkbtn { background: none; border: 0; color: var(--accent); font-weight: 700; padding: 6px 0; min-height: 36px; }
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) 64px 92px 28px; gap: 8px; color: var(--muted); font-size: 13px; padding: 0 2px; }
+.cols span:nth-child(2) { text-align: center; }
+.cols span:nth-child(3) { text-align: right; }
+.itemrow { display: grid; grid-template-columns: minmax(0, 1fr) 64px 92px 28px; gap: 8px; align-items: center; }
+.itemrow input { padding: 12px 10px; border-radius: 16px; }
+.itemrow input[data-f="q"] { text-align: center; }
+.itemrow input[data-f="p"] { text-align: right; }
+.rm { border: 0; background: none; color: var(--muted); font-size: 20px; line-height: 1; padding: 0; min-height: 36px; }
+.feehead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.feehead .chip { padding: 6px 12px; min-height: 34px; }
+.totbox { background: var(--ink); color: var(--ink-fg); border-radius: 24px; padding: 18px; display: grid; gap: 8px; }
+.totbox .r { display: flex; justify-content: space-between; gap: 12px; color: var(--ink-muted); font-size: 14px; }
+.totbox .r b { color: var(--ink-fg); }
+.totbox .t { border-top: 1px solid rgba(255,255,255,.14); padding-top: 12px; margin-top: 4px; align-items: baseline; color: var(--ink-fg); font-weight: 800; font-size: 17px; }
+.totbox .t b { color: var(--pop); font-size: clamp(26px, 8vw, 34px); }
+.save { background: var(--btn); color: var(--btn-fg); border: 0; border-radius: 22px; min-height: 58px; font-weight: 800; font-size: 17px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.save:disabled { opacity: .6; }
+.save svg { width: 22px; height: 22px; }
+.msg { min-height: 20px; font-size: 14px; color: var(--muted); }
+.msg.err { color: var(--bad); font-weight: 600; }
+.editing { background: var(--warn-soft); color: var(--warn); border-radius: 14px; padding: 10px 14px; font-weight: 600; font-size: 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.presets textarea { min-height: 120px; font-size: 15px; }
+
+/* List */
+.listtools { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 10px; margin-bottom: 14px; }
+.search { position: relative; }
+.search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--muted); }
+.search input { padding-left: 40px; border-radius: 999px; }
+.listtools select { border-radius: 999px; font-weight: 600; }
+.orders { display: grid; gap: 12px; }
+.order { border: 1.5px solid var(--ok-line); border-radius: 22px; padding: 16px; display: grid; gap: 10px; background: var(--surface); }
+.order.unpaid { border-color: var(--warn-line); }
+.order.cancelled { border-color: var(--line); opacity: .65; }
+.order.cancelled .amt, .order.cancelled .lines { text-decoration: line-through; }
+.otop { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.who { font-weight: 800; font-size: 18px; overflow-wrap: anywhere; line-height: 1.3; }
+.oid { color: var(--accent); font-weight: 800; margin-right: 6px; }
+.phone { display: inline-flex; align-items: center; gap: 6px; color: var(--accent); font-weight: 700; margin-top: 2px; }
+.phone svg { width: 16px; height: 16px; }
+.right { text-align: right; flex: none; max-width: 48%; }
+.amt { font-size: 22px; font-weight: 800; }
+.when { color: var(--muted); font-size: 13px; }
+.lines { overflow-wrap: anywhere; }
+.addr { color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
+.addr b { color: var(--fg); }
+.note { font-size: 14px; background: var(--surface-2); border-radius: 12px; padding: 8px 12px; overflow-wrap: anywhere; }
+.calc { color: var(--muted); font-size: 13px; }
+.obot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; border-top: 1px dashed var(--line); padding-top: 10px; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag2 { font-size: 12px; font-weight: 700; border-radius: 999px; padding: 3px 10px; background: var(--surface-2); border: 1px solid var(--line); color: var(--muted); }
+.tag2.paid { background: var(--ok-soft); border-color: var(--ok-line); color: var(--ok); }
+.tag2.unpaid { background: var(--warn-soft); border-color: var(--warn-line); color: var(--warn); }
+.pill { border: 0; border-radius: 999px; padding: 4px 12px; font-size: 12px; font-weight: 700; min-height: 30px; }
+.pill.pending { background: var(--warn-soft); color: var(--warn); }
+.pill.delivered { background: var(--ok-soft); color: var(--ok); }
+.pill.cancelled { background: var(--bad-soft); color: var(--bad); }
+.oact { display: flex; gap: 8px; flex-wrap: wrap; }
+.empty { text-align: center; color: var(--muted); padding: 30px 10px; border: 1.5px dashed var(--line); border-radius: 22px; }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header class="brand">
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 32 32" fill="currentColor"><circle cx="16" cy="8" r="5"/><circle cx="24" cy="14" r="5"/><circle cx="21" cy="23" r="5"/><circle cx="11" cy="23" r="5"/><circle cx="8" cy="14" r="5"/><circle cx="16" cy="16" r="3.5" fill="var(--surface)"/></svg>
+    </div>
+    <div>
+      <h1>Rose Shop <span class="tag">ትዕዛዝ መቆጣጠሪያ</span></h1>
+      <div class="sub">Daily Sales &amp; Order Tracker</div>
+    </div>
+  </header>
+
+  <div>
+    <div class="filters" role="group" aria-label="ማጣሪያ">
+      <button class="today" id="todayBtn" type="button" aria-pressed="true">ዛሬ (Today)</button>
+      <input type="date" id="dayPicker" aria-label="ቀን ምረጥ">
+      <select id="srcFilter" aria-label="ትዕዛዙ በምን ገባ"></select>
+    </div>
+    <div class="ethline" id="ethLine" style="margin-top:8px"></div>
+  </div>
+
+  <section class="card" aria-label="የሽያጭ ማጠቃለያ">
+    <div class="sum-title"><h2>የሽያጭ ማጠቃለያ</h2><span id="sumWhen"></span></div>
+    <div class="sumbtns">
+      <button class="btn" id="copyBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>
+        ሪፖርት ኮፒ (Copy)
+      </button>
+      <button class="btn primary" id="dlBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="m7 11 5 5 5-5"/><path d="M5 20h14"/></svg>
+        Excel / CSV አውርድ
+      </button>
+    </div>
+    <div class="msg" id="sumMsg" role="status"></div>
+    <div class="tiles">
+      <div class="tile main"><div class="k">አጠቃላይ ሽያጭ (Total)</div><div class="v num" id="tTotalAll">0 ETB</div><div class="s">ያለ ሰረዙት ትዕዛዞች</div></div>
+      <div class="tile"><div class="k">የዕቃ ሽያጭ (Products)</div><div class="v num" id="tProducts">0 ETB</div><div class="s">ያለ ዴሊቨሪ ዋጋ</div></div>
+      <div class="tile"><div class="k">የዴሊቨሪ ገቢ (Delivery)</div><div class="v num" id="tDelivery">0 ETB</div><div class="s">የመላኪያ ሂሳብ</div></div>
+      <div class="tile"><div class="k">የትዕዛዝ ብዛት (Orders)</div><div class="v num" id="tCount">0</div><div class="s cx" id="tCancelled"></div></div>
+    </div>
+    <div class="breakdown">
+      <h3>የክፍያ ዝርዝር (By Payment):</h3>
+      <div class="chips" id="payChips"></div>
+    </div>
+    <div class="breakdown">
+      <h3>ትዕዛዝ በምን ገባ (By Source):</h3>
+      <div class="chips" id="srcChips"></div>
+    </div>
+    <div class="fallback" id="fallback" hidden>
+      <div class="msg" id="fallbackMsg"></div>
+      <textarea id="fallbackText" readonly aria-label="ሪፖርት"></textarea>
+    </div>
+  </section>
+
+  <div class="grid">
+    <section class="card" aria-labelledby="formTitle">
+      <div class="card-head">
+        <div class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></div>
+        <div><h2 id="formTitle">አዲስ ትዕዛዝ መመዝገቢያ</h2><span class="en" id="formSub">New Order Entry Form</span></div>
+      </div>
+      <hr class="rule" style="margin-bottom:16px">
+      <form id="orderForm" autocomplete="off">
+        <div class="editing" id="editBanner" hidden><span>ትዕዛዝ እያስተካከሉ ነው</span><button class="btn small" type="button" id="cancelEdit">ተው</button></div>
+        <div class="field"><label for="fDate">ቀን <span class="en">(Order Date)</span></label><input id="fDate" type="date" required></div>
+        <div class="field"><label for="fName">የደንበኛ ስም <span class="en">(Customer Name)</span> <span class="req">*</span></label><input id="fName" type="text" required placeholder="ምሳሌ፡ ሰላማዊት"></div>
+        <div class="field"><label for="fPhone">ስልክ ቁጥር <span class="en">(Phone)</span> <span class="req">*</span></label><input id="fPhone" type="tel" inputmode="tel" required placeholder="0911..."></div>
+        <div class="field"><label for="fChannel">ትዕዛዙ በምን ገባ <span class="en">(Order Source)</span></label><select id="fChannel"></select></div>
+        <div class="field">
+          <label for="fAddress">አድራሻ <span class="en">(Delivery Location)</span> <span class="req">*</span></label>
+          <input id="fAddress" type="text" required placeholder="ሰፈር እና ልዩ ቦታ (ምሳሌ፡ ቦሌ መድኃኔዓለም ጀርባ)">
+          <div class="chiprow" id="areaChips"></div>
+        </div>
+        <hr class="rule">
+        <div class="field">
+          <div class="itemhead"><span class="lbl">የታዘዙ ዕቃዎች <span class="en">(Order Items)</span> <span class="req">*</span></span><button class="linkbtn" type="button" id="addRow">+ ሌላ ዕቃ ጨምር</button></div>
+          <div class="chiprow" id="presetChips"></div>
+          <button class="linkbtn" type="button" id="editPresets" style="justify-self:start">ምርቶችን አስተካክል</button>
+          <div class="presets field" id="presetBox" hidden>
+            <label for="presetText">በየመስመሩ ስም እና ዋጋ ይጻፉ <span class="en">(ምሳሌ፡ ሄና 350)</span></label>
+            <textarea id="presetText"></textarea>
+            <div class="chiprow"><button class="btn primary small" type="button" id="savePresets">አስቀምጥ</button><button class="btn small" type="button" id="closePresets">ዝጋ</button></div>
+          </div>
+          <div class="cols"><span>የዕቃው ስም (Item)</span><span>ብዛት</span><span>ዋጋ (ETB)</span><span></span></div>
+          <div class="field" id="rows" style="gap:8px"></div>
+        </div>
+        <hr class="rule">
+        <div class="field">
+          <div class="feehead"><label for="fDelivery">የዴሊቨሪ ዋጋ <span class="en">(Delivery Fee - ETB)</span></label><div class="chiprow" id="feeChips"></div></div>
+          <input id="fDelivery" type="number" inputmode="decimal" min="0" step="any" placeholder="0">
+        </div>
+        <div class="totbox" aria-live="polite">
+          <div class="r"><span>የዕቃ ድምር (Items Subtotal):</span><b class="num" id="tSub">0 ETB</b></div>
+          <div class="r"><span>የዴሊቨሪ ዋጋ (Delivery Fee):</span><b class="num" id="tDel">0 ETB</b></div>
+          <div class="r t"><span>አጠቃላይ ሂሳብ (Total):</span><b class="num" id="tTotal">0 ETB</b></div>
+        </div>
+        <div class="field"><label for="fMethod">በምን ተከፈለ / ይከፈላል? <span class="en">(Method)</span></label>
+          <select id="fMethod"><option value="tele">ቴሌብር (Telebirr)</option><option value="cbe">CBE / ባንክ</option><option value="cash">ጥሬ ገንዘብ (Cash)</option></select></div>
+        <div class="field"><label for="fPay">የክፍያ ሁኔታ <span class="en">(Status)</span></label>
+          <select id="fPay"><option value="paid">ተከፍሏል (Paid)</option><option value="unpaid">ያልተከፈለ (Unpaid)</option></select></div>
+        <div class="field"><label for="fNote">ማስታወሻ / የትራንዛክሽን ቁጥር <span class="en">(Optional)</span></label><input id="fNote" type="text" placeholder="ምሳሌ፡ በቴሌብር ገብቷል ወይም ዴሊቨሪ ሲደርስ ይቀበላል..."></div>
+        <button class="save" type="submit" id="saveBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4"/><rect x="8" y="14" width="8" height="6" rx="1"/></svg>
+          <span id="saveLabel">ትዕዛዙን መዝግብ (Save Order)</span>
+        </button>
+        <div class="msg" id="formMsg" role="status"></div>
+      </form>
+    </section>
+
+    <section class="card" aria-labelledby="listTitle">
+      <div class="card-head">
+        <div class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9zM9 12h6M9 16h6"/></svg></div>
+        <div><h2 id="listTitle">የተመዘገቡ ትዕዛዞች ዝርዝር</h2><span class="en">Recorded Customer Orders &amp; Cancellation Log</span></div>
+      </div>
+      <div class="listtools">
+        <div class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="search" type="search" placeholder="ስም፣ ስልክ ወይም ሰፈር" aria-label="ፈልግ">
+        </div>
+        <select id="statusFilter" aria-label="የትዕዛዝ ሁኔታ">
+          <option value="all">ሁሉም (All)</option>
+          <option value="pending">በመጠባበቅ ላይ</option>
+          <option value="delivered">ደርሷል</option>
+          <option value="cancelled">ተሰርዟል</option>
+        </select>
+      </div>
+      <div class="msg" id="note"></div>
+      <div class="orders" id="orders"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var CHANNELS = [
+    ["ስልክ ጥሪ", "ስልክ ጥሪ (Call)"], ["ቴሌግራም", "ቴሌግራም (Telegram)"], ["ኢንስታግራም", "ኢንስታግራም (Instagram)"],
+    ["ፌስቡክ", "ፌስቡክ (Facebook)"], ["ዋትሳፕ", "ዋትሳፕ (WhatsApp)"], ["ቲክቶክ", "ቲክቶክ (TikTok)"],
+    ["በአካል", "በአካል (In person)"], ["ሌላ", "ሌላ (Other)"]
+  ];
+  var AREAS = ["ሱቅ (Pickup)", "ቦሌ", "መገናኛ", "ፒያሳ", "ሜክሲኮ", "CMC / አያት", "ጀሞ / ለቡ"];
+  var FEES = [0, 100, 150, 200, 250];
+  var METHODS = { tele: "ቴሌብር (Telebirr)", cbe: "CBE / ባንክ", cash: "ጥሬ ገንዘብ (Cash)" };
+  var STATUS = { pending: "በመጠባበቅ ላይ", delivered: "ደርሷል", cancelled: "ተሰርዟል" };
+  var NEXT = { pending: "delivered", delivered: "cancelled", cancelled: "pending" };
+  var ETH_MONTHS = ["መስከረም", "ጥቅምት", "ኅዳር", "ታኅሣሥ", "ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "ጳጉሜ"];
+  var WEEKDAYS = ["እሁድ", "ሰኞ", "ማክሰኞ", "ረቡዕ", "ሐሙስ", "አርብ", "ቅዳሜ"];
+  var DEFAULT_PRESETS = "ሄና 350\nቅባት 250\nመሻጥ 400\nከሲል 300\nማስክ 450";
+
+  var $ = function (id) { return document.getElementById(id); };
+  var orders = [];
+  var viewDate = todayStr();
+  var srcFilter = "all", statusFilter = "all", searchText = "";
+  var editingId = null, confirmId = null, confirmTimer = null;
+  var rows = [{ n: "", q: 1, p: "" }];
+  var presetsText = DEFAULT_PRESETS;
+  var store = null;
+
+  /* ---------- helpers ---------- */
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function todayStr() { var d = new Date(); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+  function parseDate(s) { var p = s.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function fmt(n) { return Number(n || 0).toLocaleString("en-US", { maximumFractionDigits: 2 }); }
+  function etb(n) { return fmt(n) + " ETB"; }
+  function num(v) { var n = parseFloat(String(v).replace(/,/g, "")); return isFinite(n) && n > 0 ? n : 0; }
+  function newId() { return "o" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function setMsg(el, text, isErr) { el.textContent = text || ""; el.className = "msg" + (isErr ? " err" : ""); }
+  function toEth(y, m, d) {
+    var a = Math.floor((14 - m) / 12), yy = y + 4800 - a, mm = m + 12 * a - 3;
+    var jdn = d + Math.floor((153 * mm + 2) / 5) + 365 * yy + Math.floor(yy / 4) - Math.floor(yy / 100) + Math.floor(yy / 400) - 32045;
+    var r = (jdn - 1723856) % 1461, n = (r % 365) + 365 * Math.floor(r / 1460);
+    return { y: 4 * Math.floor((jdn - 1723856) / 1461) + Math.floor(r / 365) - Math.floor(r / 1460), m: Math.floor(n / 30) + 1, d: (n % 30) + 1 };
+  }
+  function ethLabel(s) {
+    var d = parseDate(s), e = toEth(d.getFullYear(), d.getMonth() + 1, d.getDate());
+    return WEEKDAYS[d.getDay()] + "፣ " + ETH_MONTHS[e.m - 1] + " " + e.d + " ቀን " + e.y + " ዓ.ም";
+  }
+  function lineList(o) {
+    if (Array.isArray(o.lines) && o.lines.length) return o.lines;
+    return o.items ? [{ n: o.items, q: 1, p: 0 }] : [];
+  }
+  function linesText(o) {
+    return lineList(o).map(function (l) { return l.n + (l.q > 1 ? " ×" + l.q : ""); }).join("፣ ");
+  }
+  function itemsTotalOf(o) {
+    if (o.itemsTotal != null) return Number(o.itemsTotal) || 0;
+    return Number(o.itemPrice) || 0;
+  }
+  function bucketOf(o) { return o.payStatus === "unpaid" ? "unpaid" : (o.payMethod || "cash"); }
+
+  /* ---------- storage ---------- */
+  function startLocalStore(reason) {
+    var KEY = "orders-v2", PKEY = "presets-v2";
+    try { orders = JSON.parse(localStorage.getItem(KEY) || "[]"); } catch (e) { orders = []; }
+    try { var p = localStorage.getItem(PKEY); if (p) presetsText = p; } catch (e) {}
+    function persist() { try { localStorage.setItem(KEY, JSON.stringify(orders)); } catch (e) {} }
+    store = {
+      save: function (o) {
+        var i = orders.findIndex(function (x) { return x.id === o.id; });
+        if (i >= 0) orders[i] = o; else orders.push(o);
+        persist(); renderAll(); return Promise.resolve();
+      },
+      remove: function (id) { orders = orders.filter(function (x) { return x.id !== id; }); persist(); renderAll(); return Promise.resolve(); },
+      savePresets: function (t) { presetsText = t; try { localStorage.setItem(PKEY, t); } catch (e) {} renderPresets(); return Promise.resolve(); }
+    };
+    if (reason) setMsg($("note"), reason, false);
+    renderAll(); renderPresets();
+  }
+  function startDbStore(db) {
+    store = {
+      save: function (o) { return db.doc("orders/" + o.id).set(o); },
+      remove: function (id) { return db.doc("orders/" + id).delete(); },
+      savePresets: function (t) { return db.doc("settings/presets").set({ text: t }); }
+    };
+    var timer = setTimeout(function () { setMsg($("note"), "መረጃው ገና አልደረሰም። ያሳየነው የቆየ ሊሆን ይችላል።", false); }, 10000);
+    db.collection("orders").onSnapshot(function (snap) {
+      orders = snap.docs.map(function (d) { var o = d.data() || {}; o.id = d.id; return o; });
+      if (!snap.metadata.fromCache) { clearTimeout(timer); setMsg($("note"), "", false); }
+      renderAll();
+    }, function () { clearTimeout(timer); startLocalStore("መዝገቡ በዚህ ዕቃ ብቻ ይቀመጣል።"); });
+    db.doc("settings/presets").onSnapshot(function (snap) {
+      if (snap.exists && snap.data() && typeof snap.data().text === "string") presetsText = snap.data().text;
+      renderPresets();
+    }, function () {});
+  }
+  function initStore() {
+    startLocalStore("");
+    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+  }
+
+  /* ---------- data views ---------- */
+  function baseOrders() {
+    return orders.filter(function (o) { return o.date === viewDate && (srcFilter === "all" || (o.channel || "ሌላ") === srcFilter); })
+      .sort(function (a, b) { return (a.createdAt || 0) - (b.createdAt || 0); });
+  }
+  function listOrders(base) {
+    var q = searchText.trim().toLowerCase();
+    return base.filter(function (o) {
+      if (statusFilter !== "all" && (o.status || "pending") !== statusFilter) return false;
+      if (!q) return true;
+      return [o.name, o.phone, o.address, linesText(o), o.note].join(" ").toLowerCase().indexOf(q) >= 0;
+    });
+  }
+
+  /* ---------- rendering ---------- */
+  function renderHeader() {
+    var isToday = viewDate === todayStr();
+    $("dayPicker").value = viewDate;
+    $("todayBtn").setAttribute("aria-pressed", isToday ? "true" : "false");
+    $("ethLine").textContent = ethLabel(viewDate);
+    $("sumWhen").textContent = "(" + (isToday ? "ዛሬ" : "ቀን") + " - " + viewDate + ")";
+  }
+
+  function renderSummary(base) {
+    var live = base.filter(function (o) { return o.status !== "cancelled"; });
+    var cancelled = base.length - live.length;
+    var sum = function (f) { return live.reduce(function (a, o) { return a + f(o); }, 0); };
+    $("tTotalAll").textContent = etb(sum(function (o) { return Number(o.total) || 0; }));
+    $("tProducts").textContent = etb(sum(itemsTotalOf));
+    $("tDelivery").textContent = etb(sum(function (o) { return Number(o.delivery) || 0; }));
+    $("tCount").textContent = fmt(live.length);
+    $("tCancelled").textContent = cancelled ? cancelled + " ተሰርዟል (Cancelled)" : "";
+
+    var pay = { tele: 0, cbe: 0, cash: 0, unpaid: 0 };
+    live.forEach(function (o) { var b = bucketOf(o); pay[b] = (pay[b] || 0) + (Number(o.total) || 0); });
+    $("payChips").innerHTML =
+      '<span class="bchip tele">ቴሌብር (Telebirr): ' + etb(pay.tele) + "</span>" +
+      '<span class="bchip cbe">CBE / ባንክ: ' + etb(pay.cbe) + "</span>" +
+      '<span class="bchip cash">ጥሬ ገንዘብ (Cash): ' + etb(pay.cash) + "</span>" +
+      '<span class="bchip unpaid">ያልተከፈለ (Unpaid): ' + etb(pay.unpaid) + "</span>";
+
+    var by = {};
+    live.forEach(function (o) { var c = o.channel || "ሌላ"; by[c] = by[c] || { n: 0, t: 0 }; by[c].n++; by[c].t += Number(o.total) || 0; });
+    var keys = Object.keys(by).sort(function (a, b) { return by[b].n - by[a].n; });
+    $("srcChips").innerHTML = keys.length ? keys.map(function (k) {
+      return '<span class="bchip src">' + esc(k) + ": " + by[k].n + " · " + etb(by[k].t) + "</span>";
+    }).join("") : '<span class="en">ገና ትዕዛዝ አልገባም።</span>';
+  }
+
+  function renderList(list) {
+    var box = $("orders");
+    $("listTitle").textContent = "የተመዘገቡ ትዕዛዞች ዝርዝር (" + list.length + ")";
+    if (!list.length) {
+      box.innerHTML = '<div class="empty">ምንም ትዕዛዝ አልተገኘም።<br>ትዕዛዝ ሲቀበሉ ቅጹን ሞልተው ይመዝግቡ።</div>';
+      return;
+    }
+    var all = baseOrders();
+    box.innerHTML = list.slice().reverse().map(function (o) {
+      var st = STATUS[o.status] ? o.status : "pending";
+      var unpaid = o.payStatus === "unpaid";
+      var idx = all.findIndex(function (x) { return x.id === o.id; }) + 1;
+      var t = o.createdAt ? new Date(o.createdAt) : null;
+      var when = o.date + (t ? " • " + (function () { var h = t.getHours(), ap = h >= 12 ? "PM" : "AM"; h = h % 12 || 12; return pad(h) + ":" + pad(t.getMinutes()) + " " + ap; })() : "");
+      var cls = "order" + (st === "cancelled" ? " cancelled" : unpaid ? " unpaid" : "");
+      return '<article class="' + cls + '" data-id="' + esc(o.id) + '">' +
+        '<div class="otop"><div><div class="who"><span class="oid num">#' + idx + "</span>" + esc(o.name || "ስም አልተጻፈም") + "</div>" +
+        (o.phone ? '<div class="phone num"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>' + esc(o.phone) + "</div>" : "") +
+        '</div><div class="right"><div class="amt num">' + etb(o.total) + '</div><div class="when num">' + esc(when) + "</div></div></div>" +
+        '<div class="lines">' + esc(linesText(o)) + "</div>" +
+        (o.address ? '<div class="addr"><b>አድራሻ፦</b> ' + esc(o.address) + "</div>" : "") +
+        (o.note ? '<div class="note">' + esc(o.note) + "</div>" : "") +
+        '<div class="calc num">ዕቃ ' + etb(itemsTotalOf(o)) + " + ዴሊቨሪ " + etb(o.delivery) + "</div>" +
+        '<div class="obot"><div class="tags"><span class="tag2">' + esc(o.channel || "ሌላ") + '</span><span class="tag2">' + esc(METHODS[o.payMethod] || METHODS.cash) +
+        '</span><span class="tag2 ' + (unpaid ? "unpaid" : "paid") + '">' + (unpaid ? "ያልተከፈለ" : "ተከፍሏል") + "</span>" +
+        '<button type="button" class="pill ' + st + '" data-act="status" title="ሁኔታውን ለመቀየር ይንኩ">' + STATUS[st] + "</button></div>" +
+        '<div class="oact"><button type="button" class="btn small" data-act="edit">ለውጥ</button>' +
+        (st === "cancelled"
+          ? '<button type="button" class="btn small" data-act="restore">መልስ (Restore)</button>'
+          : '<button type="button" class="btn small danger" data-act="cancel">ትዕዛዝ ሰርዝ (Cancel)</button>') +
+        '<button type="button" class="btn small" data-act="delete">' + (confirmId === o.id ? "እርግጠኛ ነኝ፣ አጥፋ" : "አጥፋ") + "</button></div></div></article>";
+    }).join("");
+  }
+
+  function renderAll() {
+    renderHeader();
+    var base = baseOrders();
+    renderSummary(base);
+    renderList(listOrders(base));
+  }
+
+  /* ---------- form: items, presets, totals ---------- */
+  function parsePresets(text) {
+    var out = [];
+    String(text || "").split(/\r?\n/).forEach(function (line) {
+      var m = line.trim().match(/^(.*\S)\s+(\d+(?:\.\d+)?)$/);
+      if (m) out.push({ n: m[1], p: parseFloat(m[2]) });
+    });
+    return out;
+  }
+  function renderPresets() {
+    $("presetChips").innerHTML = parsePresets(presetsText).map(function (p, i) {
+      return '<button type="button" class="chip outline" data-preset="' + i + '">+ ' + esc(p.n) + " (" + fmt(p.p) + ")</button>";
+    }).join("");
+  }
+  function renderRows() {
+    $("rows").innerHTML = rows.map(function (r, i) {
+      return '<div class="itemrow"><input type="text" data-i="' + i + '" data-f="n" value="' + esc(r.n) + '" placeholder="የዕቃ ስም" aria-label="የዕቃ ስም">' +
+        '<input type="number" inputmode="numeric" min="1" step="1" data-i="' + i + '" data-f="q" value="' + esc(r.q) + '" aria-label="ብዛት">' +
+        '<input type="number" inputmode="decimal" min="0" step="any" data-i="' + i + '" data-f="p" value="' + esc(r.p) + '" placeholder="0" aria-label="ዋጋ">' +
+        '<button type="button" class="rm" data-rm="' + i + '" aria-label="ዕቃውን አስወግድ">&times;</button></div>';
+    }).join("");
+  }
+  function subtotal() { return rows.reduce(function (a, r) { return a + (Math.max(1, num(r.q)) * num(r.p)); }, 0); }
+  function recalc() {
+    var sub = subtotal(), del = num($("fDelivery").value);
+    $("tSub").textContent = etb(sub);
+    $("tDel").textContent = etb(del);
+    $("tTotal").textContent = etb(sub + del);
+    Array.prototype.forEach.call($("feeChips").children, function (b) { b.classList.toggle("on", String(del) === b.getAttribute("data-fee") && $("fDelivery").value !== ""); });
+  }
+  function resetForm() {
+    $("orderForm").reset();
+    $("fDate").value = viewDate;
+    $("fChannel").value = CHANNELS[0][0];
+    rows = [{ n: "", q: 1, p: "" }];
+    editingId = null;
+    $("editBanner").hidden = true;
+    $("formTitle").textContent = "አዲስ ትዕዛዝ መመዝገቢያ";
+    $("formSub").textContent = "New Order Entry Form";
+    $("saveLabel").textContent = "ትዕዛዙን መዝግብ (Save Order)";
+    renderRows(); recalc();
+  }
+
+  /* ---------- wiring: static controls ---------- */
+  $("fChannel").innerHTML = CHANNELS.map(function (c) { return '<option value="' + esc(c[0]) + '">' + esc(c[1]) + "</option>"; }).join("");
+  $("srcFilter").innerHTML = '<option value="all">ሁሉም (All)</option>' + CHANNELS.map(function (c) { return '<option value="' + esc(c[0]) + '">' + esc(c[0]) + "</option>"; }).join("");
+  $("areaChips").innerHTML = AREAS.map(function (a) { return '<button type="button" class="chip" data-area="' + esc(a) + '">' + esc(a) + "</button>"; }).join("");
+  $("feeChips").innerHTML = FEES.map(function (f) { return '<button type="button" class="chip" data-fee="' + f + '">' + f + "</button>"; }).join("");
+
+  $("areaChips").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-area]"); if (!b) return;
+    var a = b.getAttribute("data-area"), pickup = a.indexOf("Pickup") >= 0, cur = $("fAddress").value.trim();
+    if (pickup) { $("fAddress").value = a; $("fDelivery").value = "0"; }
+    else if (!cur || cur.indexOf("Pickup") >= 0) { $("fAddress").value = a + " "; }
+    else if (cur.indexOf(a) < 0) { $("fAddress").value = cur + "፣ " + a; }
+    $("fAddress").focus(); recalc();
+  });
+  $("feeChips").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-fee]"); if (!b) return;
+    $("fDelivery").value = b.getAttribute("data-fee"); recalc();
+  });
+  $("fDelivery").addEventListener("input", recalc);
+
+  $("presetChips").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-preset]"); if (!b) return;
+    var p = parsePresets(presetsText)[+b.getAttribute("data-preset")]; if (!p) return;
+    var last = rows[rows.length - 1];
+    if (rows.length === 1 && !last.n && !num(last.p)) { last.n = p.n; last.p = p.p; last.q = 1; }
+    else { rows.push({ n: p.n, q: 1, p: p.p }); }
+    renderRows(); recalc();
+  });
+  $("addRow").addEventListener("click", function () { rows.push({ n: "", q: 1, p: "" }); renderRows(); recalc(); var ins = $("rows").querySelectorAll('input[data-f="n"]'); if (ins.length) ins[ins.length - 1].focus(); });
+  $("rows").addEventListener("input", function (e) {
+    var t = e.target, i = t.getAttribute("data-i"); if (i == null) return;
+    rows[+i][t.getAttribute("data-f")] = t.value; recalc();
+  });
+  $("rows").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-rm]"); if (!b) return;
+    rows.splice(+b.getAttribute("data-rm"), 1);
+    if (!rows.length) rows.push({ n: "", q: 1, p: "" });
+    renderRows(); recalc();
+  });
+  $("editPresets").addEventListener("click", function () { $("presetText").value = presetsText; $("presetBox").hidden = false; $("presetText").focus(); });
+  $("closePresets").addEventListener("click", function () { $("presetBox").hidden = true; });
+  $("savePresets").addEventListener("click", function () {
+    var t = $("presetText").value.trim();
+    store.savePresets(t).then(function () { $("presetBox").hidden = true; setMsg($("formMsg"), "ምርቶች ተቀምጠዋል።"); },
+      function () { setMsg($("formMsg"), "ምርቶቹ አልተቀመጡም። እንደገና ይሞክሩ።", true); });
+  });
+
+  $("cancelEdit").addEventListener("click", function () { resetForm(); setMsg($("formMsg"), ""); });
+
+  $("orderForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var lines = rows.filter(function (r) { return r.n.trim(); }).map(function (r) { return { n: r.n.trim(), q: Math.max(1, Math.round(num(r.q)) || 1), p: num(r.p) }; });
+    if (!lines.length) { setMsg($("formMsg"), "ቢያንስ አንድ ዕቃ ይጻፉ።", true); return; }
+    var sub = lines.reduce(function (a, l) { return a + l.q * l.p; }, 0), del = num($("fDelivery").value);
+    var prev = editingId ? orders.find(function (x) { return x.id === editingId; }) : null;
+    var o = {
+      id: prev ? prev.id : newId(),
+      date: $("fDate").value || viewDate,
+      createdAt: prev ? prev.createdAt : Date.now(),
+      status: prev ? (prev.status || "pending") : "pending",
+      name: $("fName").value.trim(), phone: $("fPhone").value.trim(), channel: $("fChannel").value,
+      address: $("fAddress").value.trim(),
+      lines: lines, itemsTotal: sub, delivery: del, total: sub + del,
+      payMethod: $("fMethod").value, payStatus: $("fPay").value, note: $("fNote").value.trim()
+    };
+    var wasEdit = !!prev, savedDate = o.date;
+    $("saveBtn").disabled = true;
+    store.save(o).then(function () {
+      if (savedDate !== viewDate) { viewDate = savedDate; }
+      resetForm(); renderAll();
+      setMsg($("formMsg"), wasEdit ? "ለውጡ ተቀምጧል።" : "ትዕዛዙ ተመዝግቧል።");
+    }, function (err) {
+      setMsg($("formMsg"), err && err.code === "quota_exceeded" ? "መዝገቡ ሞልቷል። የቆዩ ትዕዛዞችን ይሰርዙ።" : "ትዕዛዙ አልተቀመጠም። እንደገና ይሞክሩ።", true);
+    }).then(function () { $("saveBtn").disabled = false; });
+  });
+
+  /* ---------- list actions ---------- */
+  $("orders").addEventListener("click", function (e) {
+    var btn = e.target.closest("button[data-act]"); if (!btn) return;
+    var card = btn.closest("[data-id]");
+    var o = orders.find(function (x) { return x.id === card.getAttribute("data-id"); }); if (!o) return;
+    var act = btn.getAttribute("data-act");
+    if (act === "status") {
+      store.save(Object.assign({}, o, { status: NEXT[o.status || "pending"] })).catch(function () { setMsg($("note"), "ሁኔታው አልተቀየረም። እንደገና ይሞክሩ።", true); });
+    } else if (act === "cancel" || act === "restore") {
+      var target = act === "cancel" ? "cancelled" : "pending";
+      store.save(Object.assign({}, o, { status: target })).then(function () {
+        setMsg($("note"), act === "cancel" ? "ትዕዛዙ ተሰርዟል። ከሽያጭ ድምር ውጪ ሆኗል።" : "ትዕዛዙ ተመልሷል።");
+      }, function () { setMsg($("note"), "ሁኔታው አልተቀየረም። እንደገና ይሞክሩ።", true); });
+    } else if (act === "edit") {
+      editingId = o.id;
+      var ls = lineList(o);
+      rows = ls.length ? ls.map(function (l) { return { n: l.n, q: l.q || 1, p: l.p || "" }; }) : [{ n: "", q: 1, p: "" }];
+      $("fDate").value = o.date; $("fName").value = o.name || ""; $("fPhone").value = o.phone || "";
+      $("fChannel").value = o.channel || CHANNELS[0][0]; $("fAddress").value = o.address || "";
+      $("fDelivery").value = o.delivery ? o.delivery : ""; $("fMethod").value = o.payMethod || "cash";
+      $("fPay").value = o.payStatus || "paid"; $("fNote").value = o.note || "";
+      $("editBanner").hidden = false;
+      $("formTitle").textContent = "ትዕዛዝ ማስተካከያ"; $("formSub").textContent = "Edit Order";
+      $("saveLabel").textContent = "ለውጡን አስቀምጥ (Save Changes)";
+      setMsg($("formMsg"), ""); renderRows(); recalc();
+      $("orderForm").scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    } else if (act === "delete") {
+      if (confirmId === o.id) {
+        clearTimeout(confirmTimer); confirmId = null;
+        if (editingId === o.id) resetForm();
+        store.remove(o.id).catch(function () { setMsg($("note"), "ትዕዛዙ አልተሰረዘም። እንደገና ይሞክሩ።", true); });
+      } else {
+        confirmId = o.id; renderAll();
+        clearTimeout(confirmTimer);
+        confirmTimer = setTimeout(function () { confirmId = null; renderAll(); }, 4000);
+      }
+    }
+  });
+
+  /* ---------- filters ---------- */
+  function goDate(s) {
+    viewDate = s; confirmId = null; $("fallback").hidden = true; setMsg($("sumMsg"), "");
+    if (!editingId) $("fDate").value = s;
+    renderAll();
+  }
+  $("todayBtn").addEventListener("click", function () { goDate(todayStr()); });
+  $("dayPicker").addEventListener("change", function (e) { if (e.target.value) goDate(e.target.value); });
+  $("srcFilter").addEventListener("change", function (e) { srcFilter = e.target.value; renderAll(); });
+  $("statusFilter").addEventListener("change", function (e) { statusFilter = e.target.value; renderAll(); });
+  $("search").addEventListener("input", function (e) { searchText = e.target.value; renderAll(); });
+
+  /* ---------- report: copy and CSV ---------- */
+  function liveBase() { return baseOrders().filter(function (o) { return o.status !== "cancelled"; }); }
+  function reportText() {
+    var list = liveBase();
+    var sum = function (f) { return list.reduce(function (a, o) { return a + f(o); }, 0); };
+    var lines = ["Rose Shop — የቀን ሽያጭ", ethLabel(viewDate) + " (" + viewDate + ")",
+      "ትዕዛዞች፦ " + list.length,
+      "የዕቃ ሽያጭ፦ " + etb(sum(itemsTotalOf)),
+      "የዴሊቨሪ ገቢ፦ " + etb(sum(function (o) { return Number(o.delivery) || 0; })),
+      "አጠቃላይ ሽያጭ፦ " + etb(sum(function (o) { return Number(o.total) || 0; })), ""];
+    list.forEach(function (o, i) {
+      lines.push((i + 1) + ". " + (o.name || "ስም የለም") + " — " + linesText(o) + " — " + (o.address || "አድራሻ የለም") + " — " + etb(o.total) + (o.payStatus === "unpaid" ? " (ያልተከፈለ)" : ""));
+    });
+    return lines.join("\n");
+  }
+  function csvText() {
+    var head = ["ቀን", "ስም", "ስልክ", "በምን ገባ", "አድራሻ", "ዕቃዎች", "የዕቃ ድምር", "የዴሊቨሪ ዋጋ", "አጠቃላይ ሂሳብ", "የክፍያ መንገድ", "የክፍያ ሁኔታ", "የትዕዛዝ ሁኔታ", "ማስታወሻ"];
+    var cell = function (v) { var s = String(v == null ? "" : v); return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+    var out = [head.map(cell).join(",")];
+    baseOrders().forEach(function (o) {
+      out.push([o.date, o.name, o.phone, o.channel, o.address, linesText(o), itemsTotalOf(o), o.delivery || 0, o.total || 0,
+        METHODS[o.payMethod] || METHODS.cash, o.payStatus === "unpaid" ? "ያልተከፈለ" : "ተከፍሏል", STATUS[o.status || "pending"], o.note].map(cell).join(","));
+    });
+    return "﻿" + out.join("\r\n");
+  }
+  function showFallback(text, msg) {
+    $("fallbackText").value = text; $("fallback").hidden = false; setMsg($("fallbackMsg"), msg);
+    $("fallbackText").focus(); $("fallbackText").select();
+  }
+  $("copyBtn").addEventListener("click", function () {
+    var text = reportText();
+    function fb() { showFallback(text, "ጽሑፉን ይምረጡና ይቅዱ።"); }
+    try {
+      navigator.clipboard.writeText(text).then(function () { $("fallback").hidden = true; setMsg($("sumMsg"), "ሪፖርቱ ተቀድቷል።"); }, fb);
+    } catch (err) { fb(); }
+  });
+  $("dlBtn").addEventListener("click", function () {
+    if (!baseOrders().length) { setMsg($("sumMsg"), "በዚህ ቀን የሚወርድ ትዕዛዝ የለም።", true); return; }
+    var csv = csvText();
+    try {
+      var blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "rose-daily-track-" + viewDate + ".csv";
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+      setMsg($("sumMsg"), "ፋይሉ ወርዷል።");
+    } catch (err) {
+      showFallback(csv, "ማውረድ አልተሳካም። ጽሑፉን ቀድተው በኤክሴል ይለጥፉ።");
+    }
+  });
+
+  /* ---------- start ---------- */
+  $("fDate").value = viewDate;
+  renderRows(); recalc(); renderPresets(); renderAll();
+  initStore();
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+}
+</script>
+</body>
+</html>
+
